@@ -1,7 +1,7 @@
 // Main.js
 
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Keyboard, TouchableWithoutFeedback, ScrollView, Image } from 'react-native';
+import React, { useState, useRef, useEffect} from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Keyboard, TouchableWithoutFeedback, ScrollView, Image, Alert } from 'react-native';
 
 import dish1Image from '../../assets/ScotchFilletWithMushroom.png';
 import dish2Image from '../../assets/GrilledSalmonWithLemonButter.png';
@@ -10,7 +10,9 @@ import dish4Image from '../../assets/MargheritaPizza.png';
 
 import BackgroundImage from '../../assets/Background9.jpg';
 
-export default function Main({ navigation }){
+import auth from '@react-native-firebase/auth';
+
+export default function Main({ navigation}){
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef(null);
   const drawerAnimation = useRef(new Animated.Value(-250)).current;
@@ -64,6 +66,33 @@ export default function Main({ navigation }){
     }
   };
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged(user => {
+      if (user) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleLogout = () => {
+    auth()
+      .signOut()
+      .then(() => {
+        setIsLoggedIn(false);
+        navigation.navigate('Main');
+      })
+      .catch(error => {
+        console.error(error);
+        Alert.alert('Logout failed', error.message);
+      });
+  };
+
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
       <View style={styles.container}>
@@ -76,8 +105,6 @@ export default function Main({ navigation }){
           </TouchableOpacity>
         </View>
 
-
-
         <Animated.View
           ref={drawerRef}
           style={[
@@ -86,7 +113,16 @@ export default function Main({ navigation }){
           ]}
         >
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Main'); }}>Home</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
+          {isLoggedIn ? (
+            <View>
+              <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Profile'); }}> Profile </Text>
+              <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); handleLogout();}}>Log Out</Text>
+            </View>
+          ) : (
+            <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
+          )}
+
+
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>

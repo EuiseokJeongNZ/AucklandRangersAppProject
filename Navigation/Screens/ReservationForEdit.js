@@ -1,7 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, TouchableWithoutFeedback, TextInput, Keyboard, ScrollView } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 // onBlur={hideDrawer}
+
+import auth from '@react-native-firebase/auth';
 
 export default function ReservationForEdit({ navigation }){
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -91,6 +93,33 @@ export default function ReservationForEdit({ navigation }){
     return (hour > 11 || (hour === 11 && minute >= 30)) && (hour < 22 || (hour === 22 && minute === 0));
   };
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged(user => {
+      if (user) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleLogout = () => {
+    auth()
+      .signOut()
+      .then(() => {
+        setIsLoggedIn(false);
+        navigation.navigate('Main');
+      })
+      .catch(error => {
+        console.error(error);
+        Alert.alert('Logout failed', error.message);
+      });
+  };
+
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
       <View style={styles.container}>
@@ -111,7 +140,8 @@ export default function ReservationForEdit({ navigation }){
           ]}
         >
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Main'); }}>Home</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
+          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Profile'); }}> Profile </Text>
+          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); handleLogout();}}>Log Out</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
@@ -206,9 +236,9 @@ export default function ReservationForEdit({ navigation }){
           <TouchableOpacity onPress={() => {
             handleSave(); 
             hideDrawer(); 
-            navigation.navigate('OrderDetail');}
+            navigation.navigate('ReservationAddEdit');}
             } style={[styles.saveButton, styles.centered]}>
-            <Text style={styles.saveButtonText}>Order Detail</Text>
+            <Text style={styles.saveButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>
           </TouchableWithoutFeedback>

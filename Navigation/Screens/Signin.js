@@ -1,8 +1,12 @@
+// Signin.js
+
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Animated, Keyboard, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Animated, Keyboard, ScrollView, Alert } from 'react-native';
 // onBlur={hideDrawer}
 
-export default function Signin({ navigation }){
+import auth from '@react-native-firebase/auth';
+
+export default function Signin({ navigation }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef(null);
   const drawerAnimation = useRef(new Animated.Value(-250)).current;
@@ -16,19 +20,33 @@ export default function Signin({ navigation }){
     }).start();
     setDrawerOpen(!drawerOpen);
   };
-  
+
   const hideDrawer = () => {
     if (drawerOpen) {
       toggleDrawer();
     }
   };
-  
+
   const handleContentClick = () => {
     hideDrawer();
   };
-  
+
   const handleMenuItemClick = () => {
     hideDrawer();
+  };
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      const response = await auth().signInWithEmailAndPassword(email, password);
+      
+      navigation.navigate('Main');
+      Alert.alert('Logged in successfully!', response);
+    } catch (error) {
+      Alert.alert('Login failed!');
+    }
   };
 
   return (
@@ -59,24 +77,30 @@ export default function Signin({ navigation }){
 
         <ScrollView>
           <TouchableWithoutFeedback onPress={handleContentClick}>
-          <View style={styles.loginContainer}>
-          <Text style={styles.title}>Welcome to Our Restaurant!</Text>
-          <View style={styles.form}>
-            <Text style={styles.label}>ID:</Text>
-            <TextInput style={styles.input} onBlur={hideDrawer} placeholder="Enter your ID" autoCapitalize="none" />
-            <Text style={styles.label}>Password:</Text>
-            <TextInput style={styles.input} onBlur={hideDrawer} placeholder="Enter your password" secureTextEntry={true} />
-            <TouchableOpacity style={styles.button} onPress={handleContentClick}>
-              <Text style={styles.buttonText}>Log in</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.signupLink}>
-            <Text style={styles.signupText}>Don't have an account?</Text>
-            <TouchableOpacity>
-              <Text style={styles.signupLinkText} onPress={() => { hideDrawer(); navigation.navigate('Signup'); }} >Sign up</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+            <View style={styles.loginContainer}>
+              <Text style={styles.title}>Welcome to Our Restaurant!</Text>
+              <View style={styles.form}>
+                <Text style={styles.label}>ID:</Text>
+                <TextInput style={styles.input} onBlur={hideDrawer}
+                 value={email}
+                 onChangeText={(text) => setEmail(text)}
+                 placeholder="Enter your ID" autoCapitalize="none" />
+                <Text style={styles.label}>Password:</Text>
+                <TextInput style={styles.input} onBlur={hideDrawer}
+                value={password}
+                onChangeText={(text) => setPassword(text)}
+                placeholder="Enter your password" secureTextEntry={true} />
+                <TouchableOpacity style={styles.button} onPress={handleContentClick}>
+                  <Text style={styles.buttonText} onPress={()=>{ hideDrawer(); handleLogin(); }}>Log in</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.signupLink}>
+                <Text style={styles.signupText}>Don't have an account?</Text>
+                <TouchableOpacity>
+                  <Text style={styles.signupLinkText} onPress={() => { hideDrawer(); navigation.navigate('Signup'); }} >Sign up</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </TouchableWithoutFeedback>
         </ScrollView>
       </View>

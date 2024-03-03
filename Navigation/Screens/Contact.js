@@ -1,12 +1,14 @@
 // Contact.js
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, 
   TouchableOpacity, Image, TouchableWithoutFeedback, 
   Animated, Linking, ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';// onBlur={hideDrawer}
 
-import BackgroundImage from '../../assets/Background1.jpg';
+import BackgroundImage1 from '../../assets/Background1.jpg';
+
+import auth from '@react-native-firebase/auth';
 
 export default function Contact({ navigation }){
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -37,6 +39,33 @@ export default function Contact({ navigation }){
     hideDrawer();
   };
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged(user => {
+      if (user) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleLogout = () => {
+    auth()
+      .signOut()
+      .then(() => {
+        setIsLoggedIn(false);
+        navigation.navigate('Main');
+      })
+      .catch(error => {
+        console.error(error);
+        Alert.alert('Logout failed', error.message);
+      });
+  };
+
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
       <View style={styles.container}>
@@ -57,7 +86,14 @@ export default function Contact({ navigation }){
           ]}
         >
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Main'); }}>Home</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
+          {isLoggedIn ? (
+            <View>
+              <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Profile'); }}> Profile </Text>
+              <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); handleLogout();}}>Log Out</Text>
+            </View>
+          ) : (
+            <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
+          )}
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
@@ -66,7 +102,7 @@ export default function Contact({ navigation }){
         <ScrollView>
           <TouchableWithoutFeedback onPress={handleContentClick}>
           <View style={styles.content}>
-          <Image source={BackgroundImage} style={styles.logoImage} />
+          <Image source={BackgroundImage1} style={styles.logoImage} />
             <Text style={styles.heading}>CONTACT US</Text>
             <Text style={styles.subheading}>We're easy to find!</Text>
             <MapView
@@ -92,11 +128,11 @@ export default function Contact({ navigation }){
 
             <Text style={styles.info}>Phone: 027 363 3954</Text>
             <Text style={styles.info}>Address: 242 Queen Street, Auckland CBD, Auckland 1010</Text>
+            <Text style={styles.info}>Opening Hours: Monday-Sunday, 11:30 AM - 10:00 PM</Text>
             <TouchableOpacity onPress={() => Linking.openURL('mailto:euiseokjeongnz@gmail.com')}>
               <Text style={[styles.info, styles.email]}>Email: euiseokjeongnz@gmail.com</Text>
             </TouchableOpacity>
-            <Text style={styles.info}>Opening Hours: Monday-Sunday, 11:30 AM - 10:00 PM</Text>
-          </View>
+          </View>   
           </TouchableWithoutFeedback>
         </ScrollView>
       </View>
@@ -180,16 +216,19 @@ const styles = StyleSheet.create({
     height: 150,
   },
   heading: {
-    fontSize: 30,
+    fontSize: 35,
     marginTop: 30,
     marginBottom: 20,
     textAlign: 'center',
+    color: 'black',
     fontWeight: 'bold',
   },
   subheading: {
-    fontSize: 18,
+    fontSize: 23,
     marginBottom: 20,
     textAlign: 'center',
+    fontWeight: 'bold',
+    color: 'black',
     color: '#333', // 텍스트 색상 변경
   },
   map: {
@@ -202,8 +241,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
     fontSize: 16, // 폰트 사이즈 조정
+    marginBottom: 15,
+    color: 'black'
   },
   email: {
     color: '#e44d26',
+    marginBottom: 50,
   },
 });

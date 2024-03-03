@@ -1,5 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, TextInput, Animated, Keyboard, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, 
+  TouchableOpacity, TouchableWithoutFeedback, TextInput, 
+  Animated, Keyboard, ScrollView, Alert } from 'react-native';
+
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 // onBlur={hideDrawer}
 
 export default function Signup({ navigation }){
@@ -31,11 +36,56 @@ export default function Signup({ navigation }){
     hideDrawer();
   };
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [name, setName] = useState('');
+
+  const handleSignUp = async () => {
+    if (!email.includes('@') || !email.includes('.')) {
+      
+      Alert.alert('Example: example@email.com');
+      Alert.alert('Input correct email structure!');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Passwords don't match!");
+      return;
+    }
+
+    if (phoneNumber == ''){
+      Alert.alert("Input phone number!");
+      return;
+    }
+
+    try {
+      const { user } = await auth().createUserWithEmailAndPassword(email, password);
+      
+      await firestore().collection('users').doc(user.uid).set({
+        email,
+        password,
+        name,
+        phoneNumber,
+      });
+
+      Alert.alert('Thank You for Sign Up!');
+
+      navigation.navigate('Signin');
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Already uesed the email! Please try again!');
+    }
+  };
+
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
       <View style={styles.container}>
         <View style={styles.navbar}>
-          <Text style={[styles.logo, styles.textWhite]}>Auckland Rangers</Text>
+          <Text style={[styles.logo, styles.textWhite]}>
+            Auckland Rangers
+            </Text>
           <TouchableOpacity style={styles.menuToggle} onPress={toggleDrawer}>
             <View style={styles.bar}></View>
             <View style={styles.bar}></View>
@@ -50,11 +100,25 @@ export default function Signup({ navigation }){
             { right: drawerAnimation }
           ]}
         >
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Main'); }}>Home</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
+          <Text style={[styles.drawerLink, styles.textWhite]} 
+          onPress={() => { hideDrawer(); navigation.navigate('Main'); }}>
+            Home
+            </Text>
+          <Text style={[styles.drawerLink, styles.textWhite]} 
+          onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>
+            Sign In
+            </Text>
+          <Text style={[styles.drawerLink, styles.textWhite]} 
+          onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>
+            Menu</Text>
+          <Text style={[styles.drawerLink, styles.textWhite]} 
+          onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>
+            Reservation
+            </Text>
+          <Text style={[styles.drawerLink, styles.textWhite]} 
+          onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>
+            Contact
+            </Text>
         </Animated.View>
 
         <ScrollView>
@@ -63,28 +127,43 @@ export default function Signup({ navigation }){
           <Text style={styles.heading}>Sign Up</Text>
           <View style={styles.form}>
             <Text style={styles.label}><Text style={styles.required}>*</Text>Email:</Text>
-            <TextInput style={styles.input} onBlur={hideDrawer} placeholder="Email" autoCapitalize="none"/>
+            <TextInput style={styles.input} onBlur={hideDrawer}
+            value={email} 
+            onChangeText={setEmail} 
+            placeholder="Email" autoCapitalize="none"/>
 
             <Text style={styles.label}><Text style={styles.required}>*</Text>Password:</Text>
-            <TextInput style={styles.input} onBlur={hideDrawer} secureTextEntry={true} placeholder="Password" />
+            <TextInput style={styles.input} onBlur={hideDrawer}
+            value={password}
+            onChangeText={setPassword} 
+            secureTextEntry={true} placeholder="Password"/>
 
             <Text style={styles.label}><Text style={styles.required}>*</Text>Confirm Password:</Text>
-            <TextInput style={styles.input} onBlur={hideDrawer} secureTextEntry={true} placeholder="Confirm Password" />
+            <TextInput style={styles.input} onBlur={hideDrawer}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword} 
+            secureTextEntry={true} placeholder="Confirm Password" />
 
             <Text style={styles.label}><Text style={styles.required}>*</Text>Phone Number:</Text>
-            <TextInput style={styles.input} onBlur={hideDrawer} placeholder="Phone Number" keyboardType="phone-pad" />
+            <TextInput style={styles.input} onBlur={hideDrawer}
+            value={phoneNumber}
+            onChangeText={setPhoneNumber} maxLength={12}
+            placeholder="Phone Number" keyboardType="phone-pad" />
 
             <Text style={styles.label}>Username:</Text>
-            <TextInput style={styles.input} onBlur={hideDrawer} placeholder="Username" autoCapitalize="none"/>
+            <TextInput style={styles.input} onBlur={hideDrawer}
+            value={name}
+            onChangeText={setName}
+            placeholder="Username" autoCapitalize="none"/>
 
-            <TouchableOpacity style={styles.button} onPress={()=>{handleContentClick(); hideDrawer();}}>
+            <TouchableOpacity style={styles.button} onPress={()=>{handleContentClick(); hideDrawer(); handleSignUp();}}>
               <Text style={styles.buttonText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.loginLink}>
             <Text>Already have an account?</Text>
-            <Text style={styles.link} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Login here</Text>
+            <Text style={styles.link} onPress={() => { hideDrawer(); navigation.navigate('Signin');}}>Login here</Text>
           </View>
         </View>
           </TouchableWithoutFeedback>

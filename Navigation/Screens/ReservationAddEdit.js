@@ -1,6 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Animated, Alert, FlatList, ScrollView } from 'react-native';
 // onBlur={hideDrawer}
+
+import auth from '@react-native-firebase/auth';
 
 export default function ReservationAddEdit({ navigation }){
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -53,6 +55,33 @@ export default function ReservationAddEdit({ navigation }){
     );
   };
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged(user => {
+      if (user) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleLogout = () => {
+    auth()
+      .signOut()
+      .then(() => {
+        setIsLoggedIn(false);
+        navigation.navigate('Main');
+      })
+      .catch(error => {
+        console.error(error);
+        Alert.alert('Logout failed', error.message);
+      });
+  };
+
   const renderReservationItem = ({ item }) => (
     <View style={styles.reservationItem}>
       <Text style={styles.itemText}>Name: {item.name}</Text>
@@ -91,7 +120,8 @@ export default function ReservationAddEdit({ navigation }){
           ]}
         >
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Main'); }}>Home</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
+          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Profile'); }}> Profile </Text>
+          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); handleLogout();}}>Log Out</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
