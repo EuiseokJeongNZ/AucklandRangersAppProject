@@ -1,9 +1,9 @@
 // Contact.js
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect} from 'react';
 import { View, Text, StyleSheet, 
   TouchableOpacity, Image, TouchableWithoutFeedback, 
-  Animated, Linking, ScrollView } from 'react-native';
+  Animated, Linking, ScrollView, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';// onBlur={hideDrawer}
 
 import BackgroundImage1 from '../../assets/Background1.jpg';
@@ -95,7 +95,12 @@ export default function Contact({ navigation }){
             <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
           )}
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
+          {isLoggedIn ? (
+                  <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
+                ) : <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); Alert.alert("Please login first!");}}>
+                Reservation
+              </Text>
+          }
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
         </Animated.View>
 

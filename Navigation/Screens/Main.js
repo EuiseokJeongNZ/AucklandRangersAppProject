@@ -124,7 +124,12 @@ export default function Main({ navigation}){
 
 
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
+          {isLoggedIn ? (
+                  <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
+                ) : <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); Alert.alert("Please login first!");}}>
+                Reservation
+              </Text>
+          }
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
         </Animated.View>
         
@@ -216,9 +221,14 @@ export default function Main({ navigation}){
               </View>
               
               <TouchableOpacity style={styles.orderButton}>
-                <Text 
-                  style={[styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Reservation');}}>Reservation
-                </Text>
+              {isLoggedIn ? (
+                  <Text style={[styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Reservation');}}>
+                    Reservation
+                  </Text>
+                ) : <Text style={[styles.textWhite]} onPress={() => { hideDrawer(); Alert.alert("Please login first!");}}>
+                Reservation
+              </Text>
+                }
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>
