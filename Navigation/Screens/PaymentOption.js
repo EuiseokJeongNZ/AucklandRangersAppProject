@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, TouchableWithoutFeedback, Animated, ScrollView} from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, TouchableWithoutFeedback, Animated, ScrollView, Alert} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
-
-export default function PaymentOption({ navigation }){
+export default function PaymentOption({ navigation, route }){
+  
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef(null);
   const drawerAnimation = useRef(new Animated.Value(-250)).current;
@@ -34,11 +35,82 @@ export default function PaymentOption({ navigation }){
     hideDrawer();
   };
 
+  const [userID, setUserID] = useState(null);
+  const [orderID, setOrderID] = useState(null);
+  const { menus, bookingDate, bookingTime, name, phoneNumber, people } = route.params;
+
   const [paymentOption, setPaymentOption] = useState('credit');
   const [cardNumber, setCardNumber] = useState('');
   const [expiryMonth, setExpiryMonth] = useState('');
   const [expiryYear, setExpiryYear] = useState('');
   const [cvv, setCvv] = useState('');
+
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged(user => {
+      if (user) {
+        setUserID(user.uid);
+      } else {
+        console.log('User is not signed in.');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const addDishesToOrders = async (menus) => {
+    try {
+      const ordersRef = firestore().collection('orders');
+
+      const combinedMenu = menus.reduce((accumulator, currentMenu) => {
+        if (currentMenu.quantity !== 0) {
+          accumulator[currentMenu.menuId] = {
+            menuId: currentMenu.menuId,
+            menuName: currentMenu.menuName,
+            menuPrice: currentMenu.menuPrice,
+            quantity: currentMenu.quantity,
+          };
+        }
+        return accumulator;
+      }, {});
+
+    
+    combinedMenu['userID'] = userID;
+     
+     const currentDate = new Date();
+     const formattedDate = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${currentDate.getDate()}`;
+     const formattedTime = `${currentDate.getHours()}:${currentDate.getMinutes()}:${currentDate.getSeconds()}`;
+     const formattedDateTime = `${formattedDate} ${formattedTime}`;
+ 
+     combinedMenu['orderTime'] = formattedDateTime;
+
+    const docRef = await ordersRef.add(combinedMenu);
+    const orderId = docRef.id;
+    
+    try {
+      const reservationsRef = firestore().collection('reservations');
+      const newReservation = {
+        userId: userID,
+        orderId: orderId,
+        reservationName: name,
+        reservationPhoneNumber: phoneNumber,
+        reservationDate: bookingDate,
+        reservationTime: bookingTime,
+        reservationNumberOfPeople: people,
+        reservationPaymentOption: paymentOption,
+        reservationCardNumber: cardNumber,
+        reservationExpiryMonth: expiryMonth,
+        reservationExpiryYear: expiryYear,
+        reservationCardCvv: cvv
+      };
+      await reservationsRef.add(newReservation);
+      console.log('Reservation added to Firestore successfully!');
+    } catch (error) {
+      console.error('Error adding reservation to Firestore: ', error);
+    }
+  } catch (error) {
+    console.error('Error adding menus to orders: ', error);
+  }
+};
 
   const handlePaymentOptionChange = (option) => {
     setPaymentOption(option);
@@ -50,25 +122,6 @@ export default function PaymentOption({ navigation }){
       formatted = formatted.match(new RegExp('.{1,4}', 'g')).join(' ');
     }
     return formatted;
-  };
-
-  const handleSubmit = () => {
-    console.log('Submitted');
-  };
-
-  const StarRating = ({ rating, onStarPress }) => {
-    return (
-      <View style={styles.starContainer}>
-        {[1, 2, 3, 4, 5].map((index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => onStarPress(index)}
-            style={[styles.star, index <= rating ? styles.starSelected : null]}>
-            <Text style={styles.starText}>★</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
   };
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -103,7 +156,7 @@ export default function PaymentOption({ navigation }){
       <View style={styles.container}>
         <View style={styles.navbar}>
           <Text style={[styles.logo, styles.textWhite]}>Auckland Rangers</Text>
-          <TouchableOpacity style={styles.menuToggle} onPress={toggleDrawer}>
+          <TouchableOpacity style={styles.menuToggle} onPress={()=>{toggleDrawer(); }}>
             <View style={styles.bar}></View>
             <View style={styles.bar}></View>
             <View style={styles.bar}></View>
@@ -196,8 +249,24 @@ export default function PaymentOption({ navigation }){
               </View>
             )}
 
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText} onPress={() => {hideDrawer(); navigation.navigate('Main');}}>Submit</Text>
+            <TouchableOpacity style={styles.button} onPress={()=>{ hideDrawer();
+              {
+                if (cardNumber === '' || cardNumber.length < 12) {
+                  Alert.alert("Please check your card number!");
+                  }
+                else if (expiryMonth === '' || !(0 < expiryMonth && expiryMonth < 13) || expiryYear === ''){
+                  Alert.alert("Please check your expiry date!");
+                }
+                else if (cvv === ''){
+                  Alert.alert("Please check your cvv!");
+                }
+                else{
+                  Alert.alert("Thank you for the order!");
+                  navigation.navigate('Main'); addDishesToOrders(menus);
+                }
+              } 
+            }}>
+              <Text style={styles.buttonText} >Submit</Text>
             </TouchableOpacity>
           </View>
         </View>

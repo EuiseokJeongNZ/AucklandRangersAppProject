@@ -2,8 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Animated, ScrollView } from 'react-native';
 
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
-export default function OrderDetail({ navigation }) {
+export default function OrderDetail({ navigation, route }) {
+  const {menus} = route.params; 
+
+  const {bookingDate} = route.params;
+  const {bookingTime} = route.params;
+  const {name} = route.params;
+  const {phoneNumber} = route.params;
+  const {people} = route.params;
+
+  const totalPrice = menus.reduce((total, menu) => total + (menu.menuPrice * menu.quantity), 0);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef(null);
   const drawerAnimation = useRef(new Animated.Value(-250)).current;
@@ -32,23 +43,6 @@ export default function OrderDetail({ navigation }) {
   // 메뉴 항목 클릭 핸들러
   const handleMenuItemClick = () => {
     hideDrawer();
-  };
-
-  const [totalOrderPrice, setTotalOrderPrice] = useState(0);
-
-  useEffect(() => {
-    const addOrderItem = (name, price, quantity) => {
-      // 주문 항목 추가 및 총 주문 가격 업데이트 로직
-    };
-
-    // 데이터베이스 연결
-    addOrderItem('Grilled Salmon with Lemon Butter', 28.00, 2);
-    // updateCurrentDateAndTime(); // 현재 날짜와 시간 업데이트는 React Native에서 다르게 처리해야 할 수 있습니다.
-  }, []);
-
-  const goToPayment = () => {
-    console.log('Proceeding to payment...');
-    // Additional logic for payment navigation
   };
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -83,7 +77,7 @@ export default function OrderDetail({ navigation }) {
       <View style={styles.container}>
         <View style={styles.navbar}>
           <Text style={[styles.logo, styles.textWhite]}>Auckland Rangers</Text>
-          <TouchableOpacity style={styles.menuToggle} onPress={toggleDrawer}>
+          <TouchableOpacity style={styles.menuToggle} onPress={()=>{toggleDrawer();}}>
             <View style={styles.bar}></View>
             <View style={styles.bar}></View>
             <View style={styles.bar}></View>
@@ -109,19 +103,32 @@ export default function OrderDetail({ navigation }) {
           <TouchableWithoutFeedback onPress={handleContentClick}>
           <View style={styles.orderDetail}>
           <View style={styles.orderInfo}>
-            <Text style={styles.heading}>Order Detail</Text>
-            <Text><Text style={styles.bold}>Order Number:</Text> #123456</Text>
-            {/* 현재 날짜 및 시간 표시 방법은 React Native에서 다르게 처리해야 할 수 있습니다. */}
-            {/* <Text><Text style={styles.bold}>Date:</Text> <Text id="currentDate"></Text></Text>
-            <Text><Text style={styles.bold}>Time:</Text> <Text id="currentTime"></Text></Text> */}
-            <View style={styles.orderItems}>
-              <Text style={styles.subheading}>Order Items</Text>
-              {/* 주문 항목들 표시 */}
+          <Text style={styles.heading}>Order Detail</Text>
+          <Text><Text style={styles.bold}>Booking Date:</Text> {bookingDate}</Text>
+          <Text><Text style={styles.bold}>Booking Time:</Text> {bookingTime}</Text>
+          <Text><Text style={styles.bold}>Name:</Text> {name}</Text>
+          <Text><Text style={styles.bold}>Phone Number:</Text> {phoneNumber}</Text>
+          <Text><Text style={styles.bold}>Number of People:</Text> {people}</Text>
+          <View style={styles.orderItems}>
+            <Text style={styles.subheading}>Order Items</Text>
+
+            {menus.map((menu, index) => (
+              menu.quantity !== 0 ? (
+                <View key={index}>
+                  <Text>Dish: {menu.menuName}</Text>
+                  <Text>Price: ${(menu.menuPrice).toFixed(2)}</Text>
+                  <Text>Quantity: {menu.quantity}</Text>
+                  <Text></Text>
+                </View>
+              ) : null
+            ))}
+
             </View>
-            <Text style={styles.totalOrderPrice}><Text style={styles.bold}>Total Order Price (including 15% GST):</Text> ${totalOrderPrice.toFixed(2)}</Text>
-            <TouchableOpacity style={styles.button} onPress={() => {hideDrawer(); navigation.navigate('PaymentOption');}}>
-              <Text style={styles.buttonText}>Proceed to Payment</Text></TouchableOpacity>
-          </View>
+  <Text style={styles.totalOrderPrice}><Text style={styles.bold}>Total Order Price (including 15% GST):</Text> ${totalPrice.toFixed(2)}</Text>
+  <TouchableOpacity style={styles.button} onPress={() => {hideDrawer(); navigation.navigate('PaymentOption', {menus, bookingDate, bookingTime, name, phoneNumber, people});}}>
+    <Text style={styles.buttonText}>Proceed to Payment</Text>
+  </TouchableOpacity>
+</View>
         </View>
           </TouchableWithoutFeedback>
         </ScrollView>

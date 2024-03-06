@@ -2,15 +2,23 @@
 
 import React, { useState, useRef, useEffect} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Keyboard, TouchableWithoutFeedback, ScrollView, Image, Alert } from 'react-native';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+
 
 import dish1Image from '../../assets/ScotchFilletWithMushroom.png';
 import dish2Image from '../../assets/GrilledSalmonWithLemonButter.png';
 import dish3Image from '../../assets/ChickenAlfredoPasta.png';
 import dish4Image from '../../assets/MargheritaPizza.png';
 
-import BackgroundImage from '../../assets/Background9.jpg';
+import BackgroundImage1 from '../../assets/Background9.jpg';
+import BackgroundImage2 from '../../assets/Background10.jpg';
+import BackgroundImage3 from '../../assets/Background7.jpg';
+import BackgroundImage4 from '../../assets/Background5.jpg';
+import BackgroundImage5 from '../../assets/Background4.jpg';
+import BackgroundImage6 from '../../assets/Background3.jpg';
 
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 export default function Main({ navigation}){
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -43,27 +51,58 @@ export default function Main({ navigation}){
     hideDrawer();
   };
 
-  const [dishQuantities, setDishQuantities] = useState({
-    dish1: 0,
-    dish2: 0,
-    dish3: 0,
-    dish4: 0
-  });
+  const [menus, setMenus] = useState([]);
 
-  const increaseQuantity = (dishName) => {
-    setDishQuantities(prevState => ({
-      ...prevState,
-      [dishName]: prevState[dishName] + 1
-    }));
+  useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('menus')
+      .onSnapshot(snapshot => {
+        const newDishes = snapshot.docs.map(doc => ({
+          menuId: doc.id,
+          menuName: doc.data().menuName,
+          menuPrice: doc.data().menuPrice,
+          quantity: 0,
+          menuRecommendation: doc.data().recommendation
+        }));
+        setMenus(newDishes);
+      });
+    return () => unsubscribe();
+  }, []);
+
+  // const [dishes, setDishes] = useState([
+  //   { name: 'Scotch Fillet with Mushroom', quantity: 0, price: 44.50 },
+  //   { name: 'Grilled Salmon with LemonButter', quantity: 0, price: 28.00 },
+  //   { name: 'Chicken Alfredo Pasta', quantity: 0, price: 23.50 },
+  //   { name: 'Margherita Pizza', quantity: 0, price: 20.00 },
+  // ]);
+
+  // const [dishes, setDishes] = useState([
+  //   { name: 'Scotch Fillet With Mushroom', quantity: 0, price: 15.99 },
+  //   { name: 'Grilled Salmon With Lemon Butter', quantity: 0, price: 18.99 },
+  //   { name: 'Chicken Alfredo Pasta', quantity: 0, price: 12.99 },
+  //   { name: 'Margherita Pizza', quantity: 0, price: 9.99 }
+  // ]);
+
+  const increaseQuantity = (menuName) => {
+    setMenus(prevMenus => {
+      return prevMenus.map(menu => {
+        if (menu.menuName === menuName) {
+          return { ...menu, quantity: menu.quantity + 1 };
+        }
+        return menu;
+      });
+    });
   };
-
-  const decreaseQuantity = (dishName) => {
-    if (dishQuantities[dishName] > 0) {
-      setDishQuantities(prevState => ({
-        ...prevState,
-        [dishName]: prevState[dishName] - 1
-      }));
-    }
+  
+  const decreaseQuantity = (menuName) => {
+    setMenus(prevMenus => {
+      return prevMenus.map(menu => {
+        if (menu.menuName === menuName && menu.quantity > 0) {
+          return { ...menu, quantity: menu.quantity - 1 };
+        }
+        return menu;
+      });
+    });
   };
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -92,6 +131,23 @@ export default function Main({ navigation}){
         Alert.alert('Logout failed', error.message);
       });
   };
+
+  const [orderButtonDisabled, setOrderButtonDisabled] = useState(true);
+  useEffect(() => {
+    const allMenusZero = menus.every(menu => menu.quantity === 0);
+    setOrderButtonDisabled(allMenusZero);
+  }, [menus]);
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = [BackgroundImage1, BackgroundImage2, BackgroundImage3, BackgroundImage4, BackgroundImage5, BackgroundImage6]; // 다음 사진들의 배열
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex(prevIndex => (prevIndex + 1) % images.length);
+    }, 3500); 
+
+    return () => clearInterval(intervalId); 
+  }, []); 
 
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
@@ -134,7 +190,7 @@ export default function Main({ navigation}){
         </Animated.View>
         
         <ScrollView>
-        <Image source={BackgroundImage} style={styles.logoImage} />
+        <Image source={images[currentImageIndex]} style={styles.logoImage} />
           <TouchableWithoutFeedback onPress={handleContentClick}>
             <View style={styles.mainContainer}>
               <Text style={[styles.heading, styles.textBlack]}>Welcome to Auckland Rangers!</Text>
@@ -147,17 +203,31 @@ export default function Main({ navigation}){
                     <Text style={[styles.textBlack]}>Scotch Fillet with Mushroom</Text>
                     <Text style={[styles.textBlack]}>Price: $44.50</Text>
                     <View style={styles.quantityControl}>
-                      <TouchableOpacity
-                        style={styles.quantityButton} onPress={() => { decreaseQuantity('dish1'); hideDrawer(); }}
-                      >
-                        <Text style={styles.quantityButtonText}>-</Text>
-                      </TouchableOpacity>
-                      <View style={styles.quantityBorder}>
-                        <Text style={[styles.textBlack, styles.quantityText]}>{dishQuantities.dish1}</Text>
-                      </View>
-                      <TouchableOpacity style={styles.quantityButton} onPress={() => {increaseQuantity('dish1'); hideDrawer();}}>
-                        <Text style={styles.quantityButtonText}>+</Text>
-                      </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        decreaseQuantity('Scotch Fillet with Mushroom'); 
+                        hideDrawer(); 
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <View style={styles.quantityBorder}>
+                      <Text style={[styles.textBlack, styles.quantityText]}>
+                      {menus.find(menu => menu.menuName === 'Scotch Fillet with Mushroom')?.quantity}
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity 
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        increaseQuantity('Scotch Fillet with Mushroom'); 
+                        hideDrawer();
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
+
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -168,15 +238,30 @@ export default function Main({ navigation}){
                     <Text style={[styles.textBlack]}>Grilled Salmon with Lemon Butter</Text>
                     <Text style={[styles.textBlack]}>Price: $28.00</Text>
                     <View style={styles.quantityControl}>
-                      <TouchableOpacity style={styles.quantityButton} onPress={() => {decreaseQuantity('dish2'); hideDrawer(); }}>
-                        <Text style={styles.quantityButtonText}>-</Text>
-                      </TouchableOpacity>
-                      <View style={styles.quantityBorder}>
-                        <Text style={[styles.textBlack, styles.quantityText]}>{dishQuantities.dish2}</Text>
-                      </View>
-                      <TouchableOpacity style={styles.quantityButton} onPress={() => {increaseQuantity('dish2'); hideDrawer(); }}>
-                        <Text style={styles.quantityButtonText}>+</Text>
-                      </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        decreaseQuantity('Grilled Salmon with Lemon Butter'); 
+                        hideDrawer(); 
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <View style={styles.quantityBorder}>
+                      <Text style={[styles.textBlack, styles.quantityText]}>
+                      {menus.find(menu => menu.menuName === 'Grilled Salmon with Lemon Butter')?.quantity}
+
+                      </Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        increaseQuantity('Grilled Salmon with Lemon Butter'); 
+                        hideDrawer();
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -187,15 +272,30 @@ export default function Main({ navigation}){
                     <Text style={[styles.textBlack]}>Chicken Alfredo Pasta</Text>
                     <Text style={[styles.textBlack]}>Price: $23.50</Text>
                     <View style={styles.quantityControl}>
-                      <TouchableOpacity style={styles.quantityButton} onPress={() => {decreaseQuantity('dish3'); hideDrawer(); }}>
-                        <Text style={styles.quantityButtonText}>-</Text>
-                      </TouchableOpacity>
-                      <View style={styles.quantityBorder}>
-                        <Text style={[styles.textBlack, styles.quantityText]}>{dishQuantities.dish3}</Text>
-                      </View>
-                      <TouchableOpacity style={styles.quantityButton} onPress={() => {increaseQuantity('dish3'); hideDrawer(); }}>
-                        <Text style={styles.quantityButtonText}>+</Text>
-                      </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        decreaseQuantity('Chicken Alfredo Pasta'); 
+                        hideDrawer(); 
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <View style={styles.quantityBorder}>
+                      <Text style={[styles.textBlack, styles.quantityText]}>
+                      {menus.find(menu => menu.menuName === 'Chicken Alfredo Pasta')?.quantity}
+
+                      </Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        increaseQuantity('Chicken Alfredo Pasta'); 
+                        hideDrawer();
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -206,15 +306,30 @@ export default function Main({ navigation}){
                     <Text style={[styles.textBlack]}>Margherita Pizza</Text>
                     <Text style={[styles.textBlack]}>Price: $20.00</Text>
                     <View style={styles.quantityControl}>
-                      <TouchableOpacity style={styles.quantityButton} onPress={() => {decreaseQuantity('dish4'); hideDrawer(); }}>
-                        <Text style={styles.quantityButtonText}>-</Text>
-                      </TouchableOpacity>
-                      <View style={styles.quantityBorder}>
-                        <Text style={[styles.textBlack, styles.quantityText]}>{dishQuantities.dish4}</Text>
-                      </View>
-                      <TouchableOpacity style={styles.quantityButton} onPress={() => {increaseQuantity('dish4'); hideDrawer(); }}>
-                        <Text style={styles.quantityButtonText}>+</Text>
-                      </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        decreaseQuantity('Margherita Pizza'); 
+                        hideDrawer(); 
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <View style={styles.quantityBorder}>
+                      <Text style={[styles.textBlack, styles.quantityText]}>
+                      {menus.find(menu => menu.menuName === 'Margherita Pizza')?.quantity}
+
+                      </Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        increaseQuantity('Margherita Pizza'); 
+                        hideDrawer();
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -222,13 +337,21 @@ export default function Main({ navigation}){
               
               <TouchableOpacity style={styles.orderButton}>
               {isLoggedIn ? (
-                  <Text style={[styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Reservation');}}>
-                    Reservation
+                  <Text style={[styles.textWhite]} onPress={() => { hideDrawer();
+                    if (!orderButtonDisabled) {
+                      navigation.navigate('Reservation', { menus });
+                    }
+                    else{
+                      Alert.alert("Check quantity!");
+                    }
+                  }}>
+                    Order
                   </Text>
-                ) : <Text style={[styles.textWhite]} onPress={() => { hideDrawer(); Alert.alert("Please login first!");}}>
-                Reservation
-              </Text>
-                }
+                ) : (
+                  <Text style={[styles.textWhite]} onPress={() => { hideDrawer(); Alert.alert("Please login first!");}}>
+                    Order
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>

@@ -1,11 +1,15 @@
+// ReservationForEdit.js
+
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, TouchableWithoutFeedback, TextInput, Keyboard, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, TouchableWithoutFeedback, TextInput, Keyboard, ScrollView, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 // onBlur={hideDrawer}
 
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import Contact from './Contact';
 
-export default function ReservationForEdit({ navigation }){
+export default function Reservaion({ navigation, route }){
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef(null);
   const drawerAnimation = useRef(new Animated.Value(-250)).current;
@@ -36,12 +40,19 @@ export default function ReservationForEdit({ navigation }){
 
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [name, setName] = useState('');
+  const [people, setPeople] = useState(route.params?.numberOfPeople || '');
+
+  const {reservationID} = route.params; 
+  const [bookingName, setBookingName] = useState(route.params?.bookingName || '');
+  const [phoneNumber, setPhoneNumber] = useState(route.params?.phoneNumber || '');
+
+  let bookingDate = '';
+  let bookingTime = '';
+
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [people, setPeople] = useState(1);
 
   const decrementPeople = () => {
     if (people > 1) {
@@ -67,23 +78,17 @@ export default function ReservationForEdit({ navigation }){
     setSelectedTime(currentTime);
   };
 
-  const handleSave = () => {
-    // Save reservation logic
-    console.log('Name:', name);
-    console.log('Date:', date);
-    console.log('Time:', time);
-    console.log('Number of People:', people);
-  };
-
   const formatDate = (date) => {
-    const options = { day: 'numeric', month: 'short', year: 'numeric' };
-    const formattedDate = date.toLocaleDateString('en-US', options);
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const formattedDate = date.toLocaleDateString('en-NZ', options);
+    bookingDate = formattedDate
     return formattedDate;
   };
 
   const formatTime = (time) => {
-    const options = { hour: 'numeric', minute: '2-digit', hour12: true };
-    const formattedTime = time.toLocaleTimeString('en-US', options);
+    const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    const formattedTime = time.toLocaleTimeString('en-NZ', options);
+    bookingTime = formattedTime
     return formattedTime;
   };
 
@@ -96,15 +101,11 @@ export default function ReservationForEdit({ navigation }){
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged(user => {
-      if (user) {
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
-      }
-    });
+    const fetchUserData = async () => {
+      console.log(reservationID, bookingName, phoneNumber)
+    };
 
-    return unsubscribe;
+    fetchUserData();
   }, []);
 
   const handleLogout = () => {
@@ -119,6 +120,21 @@ export default function ReservationForEdit({ navigation }){
         Alert.alert('Logout failed', error.message);
       });
   };
+
+  const updateReservation = async (reservationID, newData) => {
+    try {
+      await firestore().collection('reservations').doc(reservationID).update(newData);
+      console.log('Reservation updated successfully!');
+    } catch (error) {
+      console.error('Error updating reservation:', error);
+    }
+  };
+  
+  // 예약 정보를 업데이트하는 함수
+  const updateReservationInfo = (reservationID, newData) => {
+    updateReservation(reservationID, newData);
+  };
+  
 
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
@@ -155,8 +171,8 @@ export default function ReservationForEdit({ navigation }){
             <Text style={styles.label}>Name:</Text>
             <TextInput
               style={styles.input}
-              value={name}
-              onChangeText={setName}
+              value={bookingName}
+              onChangeText={text => setBookingName(text)}
               placeholder="Enter your name"
               required
               onBlur={hideDrawer}
@@ -164,8 +180,8 @@ export default function ReservationForEdit({ navigation }){
             <Text style={styles.label}>Phone Number:</Text>
             <TextInput
               style={styles.input}
-              value={name}
-              onChangeText={setName}
+              value={phoneNumber}
+              onChangeText={text => setPhoneNumber(text)}
               placeholder="Enter your phone number"
               keyboardType="numeric" // 숫자 키패드 활성화
               required
@@ -233,12 +249,34 @@ export default function ReservationForEdit({ navigation }){
               </TouchableOpacity>
             </View>
           </View>
-          <TouchableOpacity onPress={() => {
-            handleSave(); 
+          <TouchableOpacity onPress={() => { 
             hideDrawer(); 
-            navigation.navigate('ReservationAddEdit');}
-            } style={[styles.saveButton, styles.centered]}>
-            <Text style={styles.saveButtonText}>Submit</Text>
+            if (bookingDate === '') {
+              Alert.alert("Select date!");
+              } 
+              else if(bookingTime === ''){
+                Alert.alert("Please select a time between 11:30 AM and 10:00 PM.");
+              }
+              else if(bookingName === ''){
+                Alert.alert("Please input your name!");
+              }
+              else if(phoneNumber === ''){
+                Alert.alert("Please input phone number!");
+              }
+              else if(phoneNumber.length < 10){
+                Alert.alert("Please check your phone number!");
+              }
+              else {
+                updateReservationInfo(reservationID, {
+                  reservationDate: bookingDate,
+                  reservationName: bookingName,
+                  reservationPhoneNumber: phoneNumber,
+                  reservationTime: bookingTime,
+                  reservationNumberOfPeople: people
+                }); navigation.navigate('ReservationAddEdit')
+              }
+            }} style={[styles.saveButton, styles.centered]}>
+            <Text style={styles.saveButtonText}>Update</Text>
           </TouchableOpacity>
         </View>
           </TouchableWithoutFeedback>

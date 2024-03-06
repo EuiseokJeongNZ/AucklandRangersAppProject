@@ -113,9 +113,6 @@ export default function Profile({ navigation }){
       Alert.alert('Error', error.message);
     }
   };
-  
-
-
 
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>

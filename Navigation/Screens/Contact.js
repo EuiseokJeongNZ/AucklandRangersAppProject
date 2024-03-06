@@ -7,6 +7,11 @@ import { View, Text, StyleSheet,
 import MapView, { Marker } from 'react-native-maps';// onBlur={hideDrawer}
 
 import BackgroundImage1 from '../../assets/Background1.jpg';
+import BackgroundImage2 from '../../assets/Background9.jpg';
+import BackgroundImage3 from '../../assets/Background8.jpg';
+import BackgroundImage4 from '../../assets/Background6.jpg';
+import BackgroundImage5 from '../../assets/Background7.jpg';
+import BackgroundImage6 from '../../assets/Background2.jpg';
 
 import auth from '@react-native-firebase/auth';
 
@@ -66,6 +71,17 @@ export default function Contact({ navigation }){
       });
   };
 
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = [BackgroundImage1, BackgroundImage2, BackgroundImage3, BackgroundImage4, BackgroundImage5, BackgroundImage6]; // 다음 사진들의 배열
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex(prevIndex => (prevIndex + 1) % images.length);
+    }, 3500); 
+
+    return () => clearInterval(intervalId); 
+  }, []); 
+
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
       <View style={styles.container}>
@@ -107,7 +123,7 @@ export default function Contact({ navigation }){
         <ScrollView>
           <TouchableWithoutFeedback onPress={handleContentClick}>
           <View style={styles.content}>
-          <Image source={BackgroundImage1} style={styles.logoImage} />
+          <Image source={images[currentImageIndex]} style={styles.logoImage} />
             <Text style={styles.heading}>CONTACT US</Text>
             <Text style={styles.subheading}>We're easy to find!</Text>
             <MapView

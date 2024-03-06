@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TouchableWithoutFeedback, Animated, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TouchableWithoutFeedback, Animated, ScrollView, Alert, FlatList, getImageSource} from 'react-native';
 
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 export default function Description({ navigation }){
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -61,40 +62,76 @@ export default function Description({ navigation }){
       });
   };
 
-  const menuItems = [
-    {
-      title: 'Scotch Fillet with Mushroom',
-      image: require('../../assets/ScotchFilletWithMushroom.png'),
-      ingredients: ['Scotch Fillet', 'Mushroom', 'Seasoning'],
-      recipe: '1. Season the scotch fillet with salt and pepper.\n2. Grill the scotch fillet to desired doneness.\n3. Sauté mushrooms in butter until tender.\n4. Serve the grilled scotch fillet with sautéed mushrooms on top.',
-      nutritionalValue: 'Calories: 550, Protein: 40g, Fat: 30g, Carbs: 5g',
-      price: '$20'
-    },
-    {
-      title: 'Grilled Salmon with Lemon Butter',
-      image: require('../../assets/GrilledSalmonWithLemonButter.png'),
-      ingredients: ['Salmon Fillet', 'Lemon', 'Butter', 'Seasoning'],
-      recipe: '1. Season the salmon fillet with salt and pepper.\n2. Grill the salmon fillet until cooked through.\n3. Melt butter in a pan and add lemon juice.\n4. Pour lemon butter sauce over the grilled salmon before serving.',
-      nutritionalValue: 'Calories: 400, Protein: 30g, Fat: 20g, Carbs: 10g',
-      price: '$30'
-    },
-    {
-      title: 'Chicken Alfredo Pasta',
-      image: require('../../assets/ChickenAlfredoPasta.png'),
-      ingredients: ['Chicken Breast', 'Pasta', 'Cream', 'Parmesan Cheese', 'Garlic'],
-      recipe: '1. Cook pasta according to package instructions.\n2. Sauté chicken breast until cooked through.\n3. In a separate pan, heat cream and minced garlic.\n4. Add cooked pasta and chicken to the cream sauce.\n5. Serve hot with grated parmesan cheese on top.',
-      nutritionalValue: 'Calories: 600, Protein: 35g, Fat: 25g, Carbs: 50g',
-      price: '$40'
-    },
-    {
-      title: 'Margherita Pizza',
-      image: require('../../assets/MargheritaPizza.png'),
-      ingredients: ['Pizza Dough', 'Tomatoes', 'Fresh Mozzarella', 'Basil', 'Olive Oil'],
-      recipe: '1. Stretch pizza dough into desired shape.\n2. Spread tomato sauce over the dough.\n3. Arrange slices of fresh mozzarella and tomato on top.\n4. Drizzle with olive oil and sprinkle with fresh basil.\n5. Bake in a preheated oven until crust is golden brown and cheese is bubbly.',
-      nutritionalValue: 'Calories: 800, Protein: 20g, Fat: 30g, Carbs: 60g',
-      price: '$50'
-    },
-  ];
+  
+
+  
+
+  // const menuItems = [
+  //   {
+  //     menuName: 'Scotch Fillet with Mushroom',
+  //     imageURL: require('../../assets/ScotchFilletWithMushroom.png'),
+  //     ingredients: ['Scotch Fillet', 'Mushroom', 'Seasoning'],
+  //     recipe: '1. Season the scotch fillet with salt and pepper.2. Grill the scotch fillet to desired doneness.3. Sauté mushrooms in butter until tender.4. Serve the grilled scotch fillet with sautéed mushrooms on top.',
+  //     nutritionalValue: 'Calories: 550, Protein: 40g, Fat: 30g, Carbs: 5g',
+  //     menuPrice: '$44.50'
+  //   },
+  //   {
+  //     menuName: 'Grilled Salmon with Lemon Butter',
+  //     imageURL: require('../../assets/GrilledSalmonWithLemonButter.png'),
+  //     ingredients: ['Salmon Fillet', 'Lemon', 'Butter', 'Seasoning'],
+  //     recipe: '1. Season the salmon fillet with salt and pepper.\n2. Grill the salmon fillet until cooked through.\n3. Melt butter in a pan and add lemon juice.\n4. Pour lemon butter sauce over the grilled salmon before serving.',
+  //     nutritionalValue: 'Calories: 400, Protein: 30g, Fat: 20g, Carbs: 10g',
+  //     menuPrice: '$28.00'
+  //   },
+  //   {
+  //     menuName: 'Chicken Alfredo Pasta',
+  //     imageURL: require('../../assets/ChickenAlfredoPasta.png'),
+  //     ingredients: ['Chicken Breast', 'Pasta', 'Cream', 'Parmesan Cheese', Garlic'],
+  //     recipe: '1. Cook pasta according to package instructions.\n2. Sauté chicken breast until cooked through.\n3. In a separate pan, heat cream and minced garlic.\n4. Add cooked pasta and chicken to the cream sauce.\n5. Serve hot with grated parmesan cheese on top.',
+  //     nutritionalValue: 'Calories: 600, Protein: 35g, Fat: 25g, Carbs: 50g',
+  //     price: '$23.50'
+  //   },
+  //   {
+  //     menuName: 'Margherita Pizza',
+  //     imageURL: require('../../assets/MargheritaPizza.png'),
+  //     ingredients: ['Pizza Dough', 'Tomatoes', 'Fresh Mozzarella', 'Basil', 'Olive Oil'],
+  //     recipe: '1. Stretch pizza dough into desired shape.\n2. Spread tomato sauce over the dough.\n3. Arrange slices of fresh mozzarella and tomato on top.\n4. Drizzle with olive oil and sprinkle with fresh basil.\n5. Bake in a preheated oven until crust is golden brown and cheese is bubbly.',
+  //     nutritionalValue: 'Calories: 800, Protein: 20g, Fat: 30g, Carbs: 60g',
+  //     price: '$20.00'
+  //   },
+  // ];
+
+  const getImageSource = (imageURL) => {
+    switch (imageURL) {
+      case '../../assets/GrilledSalmonWithLemonButter.png':
+        return require('../../assets/GrilledSalmonWithLemonButter.png');
+      case '../../assets/ChickenAlfredoPasta.png':
+        return require('../../assets/ChickenAlfredoPasta.png');
+      case '../../assets/MargheritaPizza.png':
+        return require('../../assets/MargheritaPizza.png');
+      case '../../assets/ScotchFilletWithMushroom.png':
+        return require('../../assets/ScotchFilletWithMushroom.png');
+      default:
+        return null;
+    }
+  };
+  
+
+  const [menus, setMenus] = useState([]);
+
+  useEffect(() => {
+    const fetchMenus = async () => {
+      const menuCollection = firestore().collection('menus');
+      const snapshot = await menuCollection.get();
+      const menuList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMenus(menuList);
+    };
+
+    fetchMenus();
+  }, []);
 
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
@@ -135,20 +172,29 @@ export default function Description({ navigation }){
         </Animated.View>
 
         <ScrollView>
-          {menuItems.map((menuItem, index) => (
-            <TouchableOpacity key={index} onPress={() => handleMenuItemClick(menuItem)}>
+          {menus.map((menus, index) => (
+            <TouchableOpacity key={index} >
               <View style={styles.foodDescriptionScreen}>
-                <Text style={styles.title}>{menuItem.title}</Text>
-                <Image source={menuItem.image} style={styles.image} />
-                <Text><Text style={styles.bold}>Price:</Text> {menuItem.price}</Text>
+                <Text style={styles.title}>{menus.menuName}</Text>
+                <Image source={getImageSource(menus.imageURL)} style={styles.dishImage} />
+                <Text>
+                  <Text style={styles.bold}>Price:</Text> 
+                  {' $'} 
+                  {menus.menuPrice.toFixed(2)}
+                </Text>
+                <Text></Text>
                 <Text style={styles.bold}>Ingredients</Text>
-                {menuItem.ingredients.map((ingredient, idx) => (
-                  <Text key={idx}>{ingredient}</Text>
-                ))}
+                <Text>{menus.ingredients}</Text>
+                <Text></Text>
                 <Text style={styles.bold}>Recipe</Text>
-                <Text>{menuItem.recipe}</Text>
+                <Text>{menus.recipe}</Text>
+                <Text></Text>
                 <Text style={styles.bold}>Nutritional Value</Text>
-                <Text>{menuItem.nutritionalValue}</Text>
+                <Text>{menus.nutritionalValue}</Text>
+                <Text></Text>
+
+                <Text style={styles.bold}>recommendation: {menus.recommendation}</Text>
+                <Text></Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -226,9 +272,9 @@ const styles = StyleSheet.create({
   },
   foodDescriptionScreen: {
     margin: 20,
+    marginBottom: 10, // 각 메뉴 항목 사이의 간격 조절
     padding: 20,
     backgroundColor: '#fff',
-    borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -237,12 +283,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#e44d26',
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
   },
-  image: {
+  dishImage: {
     width: '100%',
     height: 200,
     marginBottom: 20,
@@ -252,3 +301,39 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+// import firestore from '@react-native-firebase/firestore';
+
+// const MenuScreen = () => {
+//   const [menus, setMenus] = useState([]);
+
+//   useEffect(() => {
+//     const fetchMenus = async () => {
+//       const menuCollection = firestore().collection('menus');
+//       const snapshot = await menuCollection.get();
+//       const menuList = snapshot.docs.map(doc => ({
+//         id: doc.id,
+//         ...doc.data(),
+//       }));
+//       setMenus(menuList);
+//     };
+
+//     fetchMenus();
+//   }, []);
+
+//   return (
+//     <View style={styles.container}>
+//       <FlatList
+//         data={menus}
+//         renderItem={({ item }) => (
+//           <View style={styles.menuItem}>
+//             <Text style={styles.menuName}>{item.menuName}</Text>
+//             <Text style={styles.menuPrice}>Price: ${item.menuPrice}</Text>
+//             {/* 추가 필드에 따라 더 많은 정보 표시 가능 */}
+//           </View>
+//         )}
+//         keyExtractor={item => item.id}
+//       />
+//     </View>
+//   );
+// };
