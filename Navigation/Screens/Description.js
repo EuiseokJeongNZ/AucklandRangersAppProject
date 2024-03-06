@@ -25,12 +25,10 @@ export default function Description({ navigation }){
     }
   };
   
-  // 메뉴바 외부 클릭 핸들러
   const handleContentClick = () => {
     hideDrawer();
   };
   
-  // 메뉴 항목 클릭 핸들러
   const handleMenuItemClick = () => {
     hideDrawer();
   };
@@ -61,10 +59,6 @@ export default function Description({ navigation }){
         Alert.alert('Logout failed', error.message);
       });
   };
-
-  
-
-  
 
   // const menuItems = [
   //   {
@@ -116,7 +110,6 @@ export default function Description({ navigation }){
     }
   };
   
-
   const [menus, setMenus] = useState([]);
 
   useEffect(() => {
@@ -301,39 +294,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-// import firestore from '@react-native-firebase/firestore';
-
-// const MenuScreen = () => {
-//   const [menus, setMenus] = useState([]);
-
-//   useEffect(() => {
-//     const fetchMenus = async () => {
-//       const menuCollection = firestore().collection('menus');
-//       const snapshot = await menuCollection.get();
-//       const menuList = snapshot.docs.map(doc => ({
-//         id: doc.id,
-//         ...doc.data(),
-//       }));
-//       setMenus(menuList);
-//     };
-
-//     fetchMenus();
-//   }, []);
-
-//   return (
-//     <View style={styles.container}>
-//       <FlatList
-//         data={menus}
-//         renderItem={({ item }) => (
-//           <View style={styles.menuItem}>
-//             <Text style={styles.menuName}>{item.menuName}</Text>
-//             <Text style={styles.menuPrice}>Price: ${item.menuPrice}</Text>
-//             {/* 추가 필드에 따라 더 많은 정보 표시 가능 */}
-//           </View>
-//         )}
-//         keyExtractor={item => item.id}
-//       />
-//     </View>
-//   );
-// };

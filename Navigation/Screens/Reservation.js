@@ -110,7 +110,6 @@ export default function Reservaion({ navigation, route }){
             const userData = userDoc.data();
             setName(userData.name);
             setPhoneNumber(userData.phoneNumber);
-            // 필요한 다른 사용자 정보도 setState로 설정 가능
           }
         }
       } catch (error) {
@@ -182,7 +181,7 @@ export default function Reservaion({ navigation, route }){
               onChangeText={(text) => setPhoneNumber(text)}
               value={phoneNumber}
               placeholder="Enter your phone number"
-              keyboardType="numeric" // 숫자 키패드 활성화
+              keyboardType="numeric"
               required
               onBlur={hideDrawer}
             />
@@ -199,7 +198,7 @@ export default function Reservaion({ navigation, route }){
                 mode="date"
                 display="default"
                 onChange={onChangeDate}
-                minimumDate={new Date()} // 현재 날짜 이후로만 선택 가능하도록 설정
+                minimumDate={new Date()}
                 onBlur={hideDrawer}
               />
             )}
@@ -221,7 +220,7 @@ export default function Reservaion({ navigation, route }){
                 mode="time"
                 display="default"
                 onChange={onChangeTime}
-                minimumDate={new Date()} // 현재 시간 이후로만 선택 가능하도록 설정
+                minimumDate={new Date()}
                 onBlur={hideDrawer}
               />
             )}

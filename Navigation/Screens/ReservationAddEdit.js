@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     margin: 20,
-    marginBottom: 10, // 각 메뉴 항목 사이의 간격 조절
+    marginBottom: 10,
     padding: 20,
     backgroundColor: '#fff',
     shadowColor: '#000',

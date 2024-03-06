@@ -41,12 +41,10 @@ export default function Main({ navigation}){
     }
   };
   
-  // 메뉴바 외부 클릭 핸들러
   const handleContentClick = () => {
     hideDrawer();
   };
   
-  // 메뉴 항목 클릭 핸들러
   const handleMenuItemClick = () => {
     hideDrawer();
   };
@@ -139,7 +137,7 @@ export default function Main({ navigation}){
   }, [menus]);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = [BackgroundImage1, BackgroundImage2, BackgroundImage3, BackgroundImage4, BackgroundImage5, BackgroundImage6]; // 다음 사진들의 배열
+  const images = [BackgroundImage1, BackgroundImage2, BackgroundImage3, BackgroundImage4, BackgroundImage5, BackgroundImage6];
 
   useEffect(() => {
     const intervalId = setInterval(() => {

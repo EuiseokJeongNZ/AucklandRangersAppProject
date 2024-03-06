@@ -183,7 +183,7 @@ export default function Reservaion({ navigation, route }){
               value={phoneNumber}
               onChangeText={text => setPhoneNumber(text)}
               placeholder="Enter your phone number"
-              keyboardType="numeric" // 숫자 키패드 활성화
+              keyboardType="numeric"
               required
               onBlur={hideDrawer}
             />
@@ -200,7 +200,7 @@ export default function Reservaion({ navigation, route }){
                 mode="date"
                 display="default"
                 onChange={onChangeDate}
-                minimumDate={new Date()} // 현재 날짜 이후로만 선택 가능하도록 설정
+                minimumDate={new Date()}
                 onBlur={hideDrawer}
               />
             )}
@@ -222,7 +222,7 @@ export default function Reservaion({ navigation, route }){
                 mode="time"
                 display="default"
                 onChange={onChangeTime}
-                minimumDate={new Date()} // 현재 시간 이후로만 선택 가능하도록 설정
+                minimumDate={new Date()}
                 onBlur={hideDrawer}
               />
             )}

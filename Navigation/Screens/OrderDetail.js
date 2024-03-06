@@ -35,12 +35,10 @@ export default function OrderDetail({ navigation, route }) {
     }
   };
   
-  // 메뉴바 외부 클릭 핸들러
   const handleContentClick = () => {
     hideDrawer();
   };
   
-  // 메뉴 항목 클릭 핸들러
   const handleMenuItemClick = () => {
     hideDrawer();
   };

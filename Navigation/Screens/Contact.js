@@ -1,9 +1,11 @@
 // Contact.js
 
-import React, { useState, useRef, useEffect} from 'react';
-import { View, Text, StyleSheet, 
-  TouchableOpacity, Image, TouchableWithoutFeedback, 
-  Animated, Linking, ScrollView, Alert } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View, Text, StyleSheet,
+  TouchableOpacity, Image, TouchableWithoutFeedback,
+  Animated, Linking, ScrollView, Alert
+} from 'react-native';
 import MapView, { Marker } from 'react-native-maps';// onBlur={hideDrawer}
 
 import BackgroundImage1 from '../../assets/Background1.jpg';
@@ -15,7 +17,7 @@ import BackgroundImage6 from '../../assets/Background2.jpg';
 
 import auth from '@react-native-firebase/auth';
 
-export default function Contact({ navigation }){
+export default function Contact({ navigation }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef(null);
   const drawerAnimation = useRef(new Animated.Value(-250)).current;
@@ -29,17 +31,17 @@ export default function Contact({ navigation }){
     }).start();
     setDrawerOpen(!drawerOpen);
   };
-  
+
   const hideDrawer = () => {
     if (drawerOpen) {
       toggleDrawer();
     }
   };
-  
+
   const handleContentClick = () => {
     hideDrawer();
   };
-  
+
   const handleMenuItemClick = () => {
     hideDrawer();
   };
@@ -72,15 +74,15 @@ export default function Contact({ navigation }){
   };
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const images = [BackgroundImage1, BackgroundImage2, BackgroundImage3, BackgroundImage4, BackgroundImage5, BackgroundImage6]; // 다음 사진들의 배열
+  const images = [BackgroundImage1, BackgroundImage2, BackgroundImage3, BackgroundImage4, BackgroundImage5, BackgroundImage6];
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentImageIndex(prevIndex => (prevIndex + 1) % images.length);
-    }, 3500); 
+    }, 3500);
 
-    return () => clearInterval(intervalId); 
-  }, []); 
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
@@ -105,55 +107,54 @@ export default function Contact({ navigation }){
           {isLoggedIn ? (
             <View>
               <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Profile'); }}> Profile </Text>
-              <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); handleLogout();}}>Log Out</Text>
+              <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); handleLogout(); }}>Log Out</Text>
             </View>
           ) : (
             <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
           )}
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
           {isLoggedIn ? (
-                  <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
-                ) : <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); Alert.alert("Please login first!");}}>
-                Reservation
-              </Text>
+            <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
+          ) : <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); Alert.alert("Please login first!"); }}>
+              Reservation
+            </Text>
           }
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
         </Animated.View>
 
         <ScrollView>
           <TouchableWithoutFeedback onPress={handleContentClick}>
-          <View style={styles.content}>
-          <Image source={images[currentImageIndex]} style={styles.logoImage} />
-            <Text style={styles.heading}>CONTACT US</Text>
-            <Text style={styles.subheading}>We're easy to find!</Text>
-            <MapView
-              style={styles.map}
-              initialRegion={{
-                latitude: -36.84970379999999,
-                longitude: 174.76158928936883,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }}
-              provider={MapView.PROVIDER_GOOGLE} // Google Maps provider 추가
-              showsUserLocation={true} // 사용자 위치 표시 설정 (선택사항)
-              showsMyLocationButton={true} // 내 위치 버튼 표시 설정 (선택사항)
-              zoomControlEnabled={true} // 줌 컨트롤러 표시 설정 (선택사항)
-              // 이하 API 키 추가
-              apiKey={"https://maps.googleapis.com/maps/api/js?key=AIzaSyA8fhy2bTJiglp1N7OJnOKGbeEyaoldcqc&callback=console.debug&libraries=maps,marker&v=beta"}
-            >
-              <Marker
-                coordinate={{ latitude: -36.84970379999999, longitude: 174.76158928936883 }}
-                title="New Zealand Skills and Education College (NZSE) - Auckland CBD Campus"
-              />
-            </MapView>
+            <View style={styles.content}>
+              <Image source={images[currentImageIndex]} style={styles.logoImage} />
+              <Text style={styles.heading}>CONTACT US</Text>
+              <Text style={styles.subheading}>We're easy to find!</Text>
+              <MapView
+                style={styles.map}
+                initialRegion={{
+                  latitude: -36.8496208190918,
+                  longitude: 174.76527404785156,
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
+                provider={MapView.PROVIDER_GOOGLE}
+                showsUserLocation={true}
+                showsMyLocationButton={true}
+                zoomControlEnabled={true}
+                apiKey={"https://maps.googleapis.com/maps/api/js?key=AIzaSyA8fhy2bTJiglp1N7OJnOKGbeEyaoldcqc&callback=console.debug&libraries=maps,marker&v=beta"}
+              >
+                <Marker
+                  coordinate={{ latitude: -36.8496208190918, longitude: 174.76527404785156 }}
+                  title="New Zealand Skills and Education College (NZSE) - Auckland CBD Campus"
+                />
+              </MapView>
 
-            <Text style={styles.info}>Phone: 027 363 3954</Text>
-            <Text style={styles.info}>Address: 242 Queen Street, Auckland CBD, Auckland 1010</Text>
-            <Text style={styles.info}>Opening Hours: Monday-Sunday, 11:30 AM - 10:00 PM</Text>
-            <TouchableOpacity onPress={() => Linking.openURL('mailto:euiseokjeongnz@gmail.com')}>
-              <Text style={[styles.info, styles.email]}>Email: euiseokjeongnz@gmail.com</Text>
-            </TouchableOpacity>
-          </View>   
+              <Text style={styles.info}>Phone: 027 363 3954</Text>
+              <Text style={styles.info}>Address: 242 Queen Street, Auckland CBD, Auckland 1010</Text>
+              <Text style={styles.info}>Opening Hours: Monday-Sunday, 11:30 AM - 10:00 PM</Text>
+              <TouchableOpacity onPress={() => Linking.openURL('mailto:euiseokjeongnz@gmail.com')}>
+                <Text style={[styles.info, styles.email]}>Email: euiseokjeongnz@gmail.com</Text>
+              </TouchableOpacity>
+            </View>
           </TouchableWithoutFeedback>
         </ScrollView>
       </View>
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoImage:{
+  logoImage: {
     width: '100%',
     height: 150,
   },
@@ -250,18 +251,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
     color: 'black',
-    color: '#333', // 텍스트 색상 변경
+    color: '#333',
   },
   map: {
     flex: 1,
     width: '100%',
     height: 300,
-    marginBottom: 20, // 지도 아래 여백 추가
+    marginBottom: 20,
   },
   info: {
     textAlign: 'center',
     marginBottom: 10,
-    fontSize: 16, // 폰트 사이즈 조정
+    fontSize: 16,
     marginBottom: 15,
     color: 'black'
   },
