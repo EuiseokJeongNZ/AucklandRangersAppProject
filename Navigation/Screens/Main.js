@@ -5,10 +5,10 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated, Keyboard, Touchable
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
 
-import dish1Image from '../../assets/ScotchFilletWithMushroom.png';
-import dish2Image from '../../assets/GrilledSalmonWithLemonButter.png';
-import dish3Image from '../../assets/ChickenAlfredoPasta.png';
-import dish4Image from '../../assets/MargheritaPizza.png';
+import dish1Image from '../../assets/ScotchFilletWithMushroom.jpg';
+import dish2Image from '../../assets/GrilledSalmonWithLemonButter.jpg';
+import dish3Image from '../../assets/ChickenAlfredoPasta.jpg';
+import dish4Image from '../../assets/MargheritaPizza.jpg';
 
 import BackgroundImage1 from '../../assets/Background9.jpg';
 import BackgroundImage2 from '../../assets/Background10.jpg';
@@ -55,17 +55,49 @@ export default function Main({ navigation}){
     const unsubscribe = firestore()
       .collection('menus')
       .onSnapshot(snapshot => {
-        const newDishes = snapshot.docs.map(doc => ({
-          menuId: doc.id,
-          menuName: doc.data().menuName,
-          menuPrice: doc.data().menuPrice,
-          quantity: 0,
-          menuRecommendation: doc.data().recommendation
-        }));
-        setMenus(newDishes);
+        try {
+          const newDishes = snapshot.docs.map(doc => ({
+            menuId: doc.id,
+            menuName: doc.data().menuName,
+            menuPrice: doc.data().menuPrice,
+            quantity: 0,
+            menuRecommendation: doc.data().recommendation
+          }));
+          setMenus(newDishes);
+        } catch (error) {
+          console.error('Error fetching menu data:', error);
+        }
       });
+  
     return () => unsubscribe();
   }, []);
+
+  // useEffect(() => {
+  //   let unsubscribe;
+  //   try {
+  //     unsubscribe = firestore()
+  //       .collection('menus')
+  //       .onSnapshot(snapshot => {
+  //         const newDishes = snapshot.docs.map(doc => ({
+  //           menuId: doc.id,
+  //           menuName: doc.data().menuName,
+  //           menuPrice: doc.data().menuPrice,
+  //           quantity: 0,
+  //           menuRecommendation: doc.data().recommendation
+  //         }));
+  //         setMenus(newDishes);
+  //       });
+  //   } catch (error) {
+  //     console.error('Error fetching menu data:', error);
+  //   }
+  
+  //   return () => {
+  //     if (unsubscribe) {
+  //       unsubscribe();
+  //     }
+  //   };
+  // }, []);
+  
 
   // const [dishes, setDishes] = useState([
   //   { name: 'Scotch Fillet with Mushroom', quantity: 0, price: 44.50 },
@@ -82,18 +114,23 @@ export default function Main({ navigation}){
   // ]);
 
   const increaseQuantity = (menuName) => {
-    setMenus(prevMenus => {
-      return prevMenus.map(menu => {
-        if (menu.menuName === menuName) {
-          return { ...menu, quantity: menu.quantity + 1 };
-        }
-        return menu;
+    try{
+      setMenus(prevMenus => {
+        return prevMenus.map(menu => {
+          if (menu.menuName === menuName) {
+            return { ...menu, quantity: menu.quantity + 1 };
+          }
+          return menu;
+        });
       });
-    });
+    }
+    catch{
+
+    }
   };
   
   const decreaseQuantity = (menuName) => {
-    setMenus(prevMenus => {
+    try{setMenus(prevMenus => {
       return prevMenus.map(menu => {
         if (menu.menuName === menuName && menu.quantity > 0) {
           return { ...menu, quantity: menu.quantity - 1 };
@@ -101,23 +138,32 @@ export default function Main({ navigation}){
         return menu;
       });
     });
+  }
+  catch{
+
+  }
   };
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    try{
     const unsubscribe = auth().onAuthStateChanged(user => {
       if (user) {
         setIsLoggedIn(true);
       } else {
         setIsLoggedIn(false);
       }
+      return unsubscribe;
     });
+  }
+  catch{
 
-    return unsubscribe;
+  }
   }, []);
 
   const handleLogout = () => {
+    try{
     auth()
       .signOut()
       .then(() => {
@@ -125,24 +171,38 @@ export default function Main({ navigation}){
         navigation.navigate('Main');
       })
       .catch(error => {
-        console.error(error);
         Alert.alert('Logout failed', error.message);
       });
+    }
+    catch{
+      
+    }
   };
 
   const [orderButtonDisabled, setOrderButtonDisabled] = useState(true);
+ 
   useEffect(() => {
+    try{
     const allMenusZero = menus.every(menu => menu.quantity === 0);
     setOrderButtonDisabled(allMenusZero);
+  }
+  catch{
+
+  }
   }, [menus]);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = [BackgroundImage1, BackgroundImage2, BackgroundImage3, BackgroundImage4, BackgroundImage5, BackgroundImage6];
 
   useEffect(() => {
+    try{
     const intervalId = setInterval(() => {
       setCurrentImageIndex(prevIndex => (prevIndex + 1) % images.length);
     }, 3500); 
+  }
+  catch{
+
+  }
 
     return () => clearInterval(intervalId); 
   }, []); 

@@ -18,7 +18,12 @@ allprojects {
     }
 }
 
-// Apply the Google services Gradle plugin manually
-plugins {
-    id 'com.google.gms.google-services' version '4.4.1' apply false
-}
+// // Apply the Google services Gradle plugin manually
+// plugins {
+//     id 'com.android.application'
+//     id 'com.google.gms.google-services' version '4.4.1'
+// }
+
+// plugins {
+//     id 'com.google.gms.google-services' version '4.4.1' apply false
+// }

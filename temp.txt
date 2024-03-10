@@ -1,9 +1,26 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Animated, Alert, ScrollView } from 'react-native';
+// Main.js
+
+import React, { useState, useRef, useEffect} from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Keyboard, TouchableWithoutFeedback, ScrollView, Image, Alert } from 'react-native';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+
+
+import dish1Image from '../../assets/ScotchFilletWithMushroom.png';
+import dish2Image from '../../assets/GrilledSalmonWithLemonButter.png';
+import dish3Image from '../../assets/ChickenAlfredoPasta.png';
+import dish4Image from '../../assets/MargheritaPizza.png';
+
+import BackgroundImage1 from '../../assets/Background9.jpg';
+import BackgroundImage2 from '../../assets/Background10.jpg';
+import BackgroundImage3 from '../../assets/Background7.jpg';
+import BackgroundImage4 from '../../assets/Background5.jpg';
+import BackgroundImage5 from '../../assets/Background4.jpg';
+import BackgroundImage6 from '../../assets/Background3.jpg';
+
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 
-export default function ReservationAddEdit({ navigation }) {
+export default function Main({ navigation}){
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef(null);
   const drawerAnimation = useRef(new Animated.Value(-250)).current;
@@ -17,63 +34,136 @@ export default function ReservationAddEdit({ navigation }) {
     }).start();
     setDrawerOpen(!drawerOpen);
   };
-
+  
   const hideDrawer = () => {
     if (drawerOpen) {
       toggleDrawer();
     }
   };
-
+  
   const handleContentClick = () => {
     hideDrawer();
   };
+  
+  const handleMenuItemClick = () => {
+    hideDrawer();
+  };
 
-  const [userID, setUserID] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged(user => {
-      if (user) {
-        setUserID(user.uid);
-      } else {
-        console.log('User is not signed in.');
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const [reservations, setReservations] = useState([]);
+  const [menus, setMenus] = useState([]);
 
   useEffect(() => {
     const unsubscribe = firestore()
-      .collection('reservations')
-      .where('userId', '==', userID)
+      .collection('menus')
       .onSnapshot(snapshot => {
-        const data = [];
-        snapshot.forEach(doc => {
-          data.push({ id: doc.id, ...doc.data() });
-        });
-        setReservations(data);
+        try {
+          const newDishes = snapshot.docs.map(doc => ({
+            menuId: doc.id,
+            menuName: doc.data().menuName,
+            menuPrice: doc.data().menuPrice,
+            quantity: 0,
+            menuRecommendation: doc.data().recommendation
+          }));
+          setMenus(newDishes);
+        } catch (error) {
+          console.error('Error fetching menu data:', error);
+        }
       });
-
+  
     return () => unsubscribe();
-  }, [userID]);
+  }, []);
+
+  // useEffect(() => {
+  //   let unsubscribe;
+  //   try {
+  //     unsubscribe = firestore()
+  //       .collection('menus')
+  //       .onSnapshot(snapshot => {
+  //         const newDishes = snapshot.docs.map(doc => ({
+  //           menuId: doc.id,
+  //           menuName: doc.data().menuName,
+  //           menuPrice: doc.data().menuPrice,
+  //           quantity: 0,
+  //           menuRecommendation: doc.data().recommendation
+  //         }));
+  //         setMenus(newDishes);
+  //       });
+  //   } catch (error) {
+  //     console.error('Error fetching menu data:', error);
+  //   }
+  
+  //   return () => {
+  //     if (unsubscribe) {
+  //       unsubscribe();
+  //     }
+  //   };
+  // }, []);
+  
+
+  // const [dishes, setDishes] = useState([
+  //   { name: 'Scotch Fillet with Mushroom', quantity: 0, price: 44.50 },
+  //   { name: 'Grilled Salmon with LemonButter', quantity: 0, price: 28.00 },
+  //   { name: 'Chicken Alfredo Pasta', quantity: 0, price: 23.50 },
+  //   { name: 'Margherita Pizza', quantity: 0, price: 20.00 },
+  // ]);
+
+  // const [dishes, setDishes] = useState([
+  //   { name: 'Scotch Fillet With Mushroom', quantity: 0, price: 15.99 },
+  //   { name: 'Grilled Salmon With Lemon Butter', quantity: 0, price: 18.99 },
+  //   { name: 'Chicken Alfredo Pasta', quantity: 0, price: 12.99 },
+  //   { name: 'Margherita Pizza', quantity: 0, price: 9.99 }
+  // ]);
+
+  const increaseQuantity = (menuName) => {
+    try{
+      setMenus(prevMenus => {
+        return prevMenus.map(menu => {
+          if (menu.menuName === menuName) {
+            return { ...menu, quantity: menu.quantity + 1 };
+          }
+          return menu;
+        });
+      });
+    }
+    catch{
+
+    }
+  };
+  
+  const decreaseQuantity = (menuName) => {
+    try{setMenus(prevMenus => {
+      return prevMenus.map(menu => {
+        if (menu.menuName === menuName && menu.quantity > 0) {
+          return { ...menu, quantity: menu.quantity - 1 };
+        }
+        return menu;
+      });
+    });
+  }
+  catch{
+
+  }
+  };
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    try{
     const unsubscribe = auth().onAuthStateChanged(user => {
       if (user) {
         setIsLoggedIn(true);
       } else {
         setIsLoggedIn(false);
       }
+      return unsubscribe;
     });
+  }
+  catch{
 
-    return unsubscribe;
+  }
   }, []);
 
   const handleLogout = () => {
+    try{
     auth()
       .signOut()
       .then(() => {
@@ -81,68 +171,48 @@ export default function ReservationAddEdit({ navigation }) {
         navigation.navigate('Main');
       })
       .catch(error => {
-        console.error(error);
         Alert.alert('Logout failed', error.message);
       });
-  };
-
-
-  const OrderDetailsScreen = ({ id }) => {
-    const [menuDetails, setMenuDetails] = useState([]);
-  
-    useEffect(() => {
-      const fetchOrderDetails = async () => {
-        try {
-          const orderDoc = await firestore().collection('orders').doc(id).get();
-          if (orderDoc.exists) {
-            const orderData = orderDoc.data();
-            const menuDetails = Object.values(orderData).filter(item => typeof item === 'object');
-            setMenuDetails(menuDetails);
-          } else {
-            console.log("Order not found");
-          }
-        } catch (error) {
-          console.error("Error fetching order:", error);
-        }
-      };
-  
-      fetchOrderDetails();
-    }, [id]);
-  
-    return (
-      <View>
-        {menuDetails.map((menu, index) => (
-          <View key={index} style={{ marginBottom: 10 }}>
-            <Text>Menu Name: {menu.menuName}</Text>
-            <Text>Menu Price: {menu.menuPrice}</Text>
-            <Text>Quantity: {menu.quantity}</Text>
-          </View>
-        ))}
-      </View>
-    );
-  };
-
-  const handleDelete = async (reservationId, orderId) => {
-    try {
-      await firestore().collection('reservations').doc(reservationId).delete();
-      console.log('Reservation deleted successfully.');
-
-      if (orderId) {
-        await firestore().collection('orders').doc(orderId).delete();
-        console.log('Order associated with the reservation deleted successfully.');
-      }
-    } catch (error) {
-      console.error('Error deleting reservation:', error);
-      Alert.alert('Error', 'Failed to delete reservation.');
+    }
+    catch{
+      
     }
   };
+
+  const [orderButtonDisabled, setOrderButtonDisabled] = useState(true);
+ 
+  useEffect(() => {
+    try{
+    const allMenusZero = menus.every(menu => menu.quantity === 0);
+    setOrderButtonDisabled(allMenusZero);
+  }
+  catch{
+
+  }
+  }, [menus]);
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = [BackgroundImage1, BackgroundImage2, BackgroundImage3, BackgroundImage4, BackgroundImage5, BackgroundImage6];
+
+  useEffect(() => {
+    try{
+    const intervalId = setInterval(() => {
+      setCurrentImageIndex(prevIndex => (prevIndex + 1) % images.length);
+    }, 3500); 
+  }
+  catch{
+
+  }
+
+    return () => clearInterval(intervalId); 
+  }, []); 
 
   return (
     <TouchableWithoutFeedback onPress={handleContentClick}>
       <View style={styles.container}>
         <View style={styles.navbar}>
           <Text style={[styles.logo, styles.textWhite]}>Auckland Rangers</Text>
-          <TouchableOpacity style={styles.menuToggle} onPress={()=>{toggleDrawer();}}>
+          <TouchableOpacity style={styles.menuToggle} onPress={toggleDrawer}>
             <View style={styles.bar}></View>
             <View style={styles.bar}></View>
             <View style={styles.bar}></View>
@@ -157,47 +227,189 @@ export default function ReservationAddEdit({ navigation }) {
           ]}
         >
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Main'); }}>Home</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Profile'); }}> Profile </Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); handleLogout(); }}>Log Out</Text>
+          {isLoggedIn ? (
+            <View>
+              <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Profile'); }}> Profile </Text>
+              <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); handleLogout();}}>Log Out</Text>
+            </View>
+          ) : (
+            <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
+          )}
+
+
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
+          {isLoggedIn ? (
+                  <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
+                ) : <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); Alert.alert("Please login first!");}}>
+                Reservation
+              </Text>
+          }
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
         </Animated.View>
-
+        
         <ScrollView>
+        <Image source={images[currentImageIndex]} style={styles.logoImage} />
           <TouchableWithoutFeedback onPress={handleContentClick}>
-            <View style={styles.reservationItem}>
-              {reservations.map((reservation, index) => (
-                <View key={index}>
-                  <Text>Date: {reservation.reservationDate}</Text>
-                  <Text>Reservation Name: {reservation.reservationName}</Text>
-                  <Text>Reservation Number of People: {reservation.reservationNumberOfPeople}</Text>
-                  <Text>Reservation Phone Number: {reservation.reservationPhoneNumber}</Text>
-                  <Text>Reservation Time: {reservation.reservationTime}</Text>
-                  <Text>Order ID: {reservation.orderId}</Text>
+            <View style={styles.mainContainer}>
+              <Text style={[styles.heading, styles.textBlack]}>Welcome to Auckland Rangers!</Text>
+              <Text style={[styles.subHeading, styles.textBlack]}>Our Specials</Text>
 
-                  <OrderDetailsScreen id={reservation.orderId} />
+              <View style={styles.menuContainer}>
+                <TouchableOpacity style={styles.menuItem} onPress={() => {hideDrawer(); }}>
+                  <View style={styles.menuItemContent}>
+                    <Image source={dish1Image} style={styles.dishImage} />
+                    <Text style={[styles.textBlack]}>Scotch Fillet with Mushroom</Text>
+                    <Text style={[styles.textBlack]}>Price: $44.50</Text>
+                    <View style={styles.quantityControl}>
+                    <TouchableOpacity
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        decreaseQuantity('Scotch Fillet with Mushroom'); 
+                        hideDrawer(); 
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <View style={styles.quantityBorder}>
+                      <Text style={[styles.textBlack, styles.quantityText]}>
+                      {menus.find(menu => menu.menuName === 'Scotch Fillet with Mushroom')?.quantity}
+                      </Text>
+                    </View>
 
-                  <TouchableOpacity
-                    style={[styles.deleteButton, { alignSelf: 'center' }]}
-                    onPress={() => { hideDrawer(); navigation.navigate('ReservationForEdit'); }}
-                  >
-                    <Text style={styles.buttonText}>Edit</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        increaseQuantity('Scotch Fillet with Mushroom'); 
+                        hideDrawer();
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={[styles.deleteButton, { alignSelf: 'center' }]}
-                    onPress={() => { hideDrawer(); handleDelete(reservation.id, reservation.orderId); }}
-                  >
-                    <Text style={styles.buttonText}>Delete</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuItem} onPress={() => {hideDrawer(); }}>
+                  <View style={styles.menuItemContent}>
+                    <Image source={dish2Image} style={styles.dishImage} />
+                    <Text style={[styles.textBlack]}>Grilled Salmon with Lemon Butter</Text>
+                    <Text style={[styles.textBlack]}>Price: $28.00</Text>
+                    <View style={styles.quantityControl}>
+                    <TouchableOpacity
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        decreaseQuantity('Grilled Salmon with Lemon Butter'); 
+                        hideDrawer(); 
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <View style={styles.quantityBorder}>
+                      <Text style={[styles.textBlack, styles.quantityText]}>
+                      {menus.find(menu => menu.menuName === 'Grilled Salmon with Lemon Butter')?.quantity}
+
+                      </Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        increaseQuantity('Grilled Salmon with Lemon Butter'); 
+                        hideDrawer();
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuItem} onPress={() => {hideDrawer(); }}>
+                  <View style={styles.menuItemContent}>
+                    <Image source={dish3Image} style={styles.dishImage} />
+                    <Text style={[styles.textBlack]}>Chicken Alfredo Pasta</Text>
+                    <Text style={[styles.textBlack]}>Price: $23.50</Text>
+                    <View style={styles.quantityControl}>
+                    <TouchableOpacity
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        decreaseQuantity('Chicken Alfredo Pasta'); 
+                        hideDrawer(); 
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <View style={styles.quantityBorder}>
+                      <Text style={[styles.textBlack, styles.quantityText]}>
+                      {menus.find(menu => menu.menuName === 'Chicken Alfredo Pasta')?.quantity}
+
+                      </Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        increaseQuantity('Chicken Alfredo Pasta'); 
+                        hideDrawer();
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuItem} onPress={() => {hideDrawer(); }}>
+                  <View style={styles.menuItemContent}>
+                    <Image source={dish4Image} style={styles.dishImage} />
+                    <Text style={[styles.textBlack]}>Margherita Pizza</Text>
+                    <Text style={[styles.textBlack]}>Price: $20.00</Text>
+                    <View style={styles.quantityControl}>
+                    <TouchableOpacity
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        decreaseQuantity('Margherita Pizza'); 
+                        hideDrawer(); 
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <View style={styles.quantityBorder}>
+                      <Text style={[styles.textBlack, styles.quantityText]}>
+                      {menus.find(menu => menu.menuName === 'Margherita Pizza')?.quantity}
+
+                      </Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.quantityButton} 
+                      onPress={() => { 
+                        increaseQuantity('Margherita Pizza'); 
+                        hideDrawer();
+                      }}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </View>
               
-              <TouchableOpacity
-                style={[styles.addButton, { alignSelf: 'center' }]}
-              >
-                <Text style={styles.buttonText} onPress={() => { navigation.navigate('Main'); }}>Add Reservation</Text>
+              <TouchableOpacity style={styles.orderButton}>
+              {isLoggedIn ? (
+                  <Text style={[styles.textWhite]} onPress={() => { hideDrawer();
+                    if (!orderButtonDisabled) {
+                      navigation.navigate('Reservation', { menus });
+                    }
+                    else{
+                      Alert.alert("Check quantity!");
+                    }
+                  }}>
+                    Order
+                  </Text>
+                ) : (
+                  <Text style={[styles.textWhite]} onPress={() => { hideDrawer(); Alert.alert("Please login first!");}}>
+                    Order
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>
@@ -273,291 +485,89 @@ const styles = StyleSheet.create({
   active: {
     right: 0,
   },
-  reservationItem: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 20,
-    marginBottom: 10,
+  mainContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#eee',
   },
-  itemText: {
-    fontSize: 16,
+  heading: {
+    marginTop: 15,
+    fontSize: 30,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  subHeading: {
+    fontSize: 20,
+    marginTop: 15,
     marginBottom: 5,
-    
-    alignSelf: 'center',
   },
-  deleteButton: {
-    backgroundColor: '#e44d26',
-    borderRadius: 4,
-    padding: 10,
-    marginTop: 10,
-    width: 150,
-    
-    alignSelf: 'center',
-  },
-  editButton: {
-    backgroundColor: '#e44d26',
-    borderRadius: 4,
-    padding: 10,
-    marginTop: 10,
-    width: 150,
-    
-    alignSelf: 'center',
-  },
-  addButton: {
-    backgroundColor: '#e44d26',
-    borderRadius: 4,
-    padding: 15,
-    marginTop: 20,
-    width: 200,
-    alignSelf: 'center',
-    marginTop: 20,
+  menuContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     marginBottom: 20,
   },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
+  menuItem: {
+    width: '45%',
+    backgroundColor: '#eee',
+    margin: 5,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  menuItemContent: {
+    fontWeight: 'bold',
+    fontSize: 10,
     textAlign: 'center',
   },
-  contentContainer: {
-    flex: 1,
-  },
-});
-
-
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Animated, Alert, FlatList, ScrollView } from 'react-native';
-// onBlur={hideDrawer}
-
-export default function ReservationAddEdit({ navigation }){
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const drawerRef = useRef(null);
-  const drawerAnimation = useRef(new Animated.Value(-250)).current;
-
-  const toggleDrawer = () => {
-    const newValue = drawerOpen ? -250 : 0;
-    Animated.timing(drawerAnimation, {
-      toValue: newValue,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-    setDrawerOpen(!drawerOpen);
-  };
-  
-  const hideDrawer = () => {
-    if (drawerOpen) {
-      toggleDrawer();
-    }
-  };
-  
-  const handleContentClick = () => {
-    hideDrawer();
-  };
-  
-  const handleMenuItemClick = () => {
-    hideDrawer();
-  };
-
-  const [reservations, setReservations] = useState([
-    { id: '1', name: 'John Doe', phoneNumber: '012345678', date: '2024-02-25', time: '18:00', people: 2 },
-    { id: '2', name: 'Jane Smith', phoneNumber: '123456789', date: '2024-02-27', time: '19:30', people: 4 },
-  ]);
-
-  const deleteReservation = (id) => {
-    setReservations(prevReservations =>
-      prevReservations.filter(reservation => reservation.id !== id)
-    );
-  };
-
-  const confirmDelete = (id) => {
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to cancel this reservation?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', onPress: () => deleteReservation(id) }
-      ]
-    );
-  };
-
-  const renderReservationItem = ({ item }) => (
-    <View style={styles.reservationItem}>
-      <Text style={styles.itemText}>Name: {item.name}</Text>
-      <Text style={styles.itemText}>Phone Number: {item.phoneNumber}</Text>
-      <Text style={styles.itemText}>Date: {item.date}</Text>
-      <Text style={styles.itemText}>Time: {item.time}</Text>
-      <Text style={styles.itemText}>Number of People: {item.people}</Text>
-      <TouchableOpacity style={styles.deleteButton} onPress={() => {confirmDelete(item.id); hideDrawer();}}>
-        <Text style={styles.buttonText}>Delete</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.editButton} onPress={
-        () => {navigation.navigate('ReservationForEdit', { reservation: item }); hideDrawer();}
-        }>
-        <Text style={styles.buttonText}>Edit</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  return (
-    <TouchableWithoutFeedback onPress={handleContentClick}>
-      <View style={styles.container}>
-        <View style={styles.navbar}>
-          <Text style={[styles.logo, styles.textWhite]}>Auckland Rangers</Text>
-          <TouchableOpacity style={styles.menuToggle} onPress={toggleDrawer}>
-            <View style={styles.bar}></View>
-            <View style={styles.bar}></View>
-            <View style={styles.bar}></View>
-          </TouchableOpacity>
-        </View>
-
-        <Animated.View
-          ref={drawerRef}
-          style={[
-            styles.drawer,
-            { right: drawerAnimation }
-          ]}
-        >
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Main'); }}>Home</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Signin'); }}>Sign In</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Description'); }}>Menu</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('ReservationAddEdit'); }}>Reservation</Text>
-          <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
-        </Animated.View>
-
-        <ScrollView>
-          <TouchableWithoutFeedback onPress={handleContentClick}>
-          <View style={styles.mainContainer}>
-                <FlatList
-                style={styles.contentContainer}
-                data={reservations}
-                renderItem={renderReservationItem}
-                keyExtractor={item => item.id}
-              />
-
-              <TouchableOpacity
-                style={[styles.addButton, { alignSelf: 'center' }]}
-              >
-                <Text style={styles.buttonText} onPress={() => { hideDrawer(); navigation.navigate('Main'); }} >Add Reservation</Text>
-              </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          </ScrollView>
-      </View>
-    </TouchableWithoutFeedback>
-  );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  dishImage: {
     width: '100%',
-    backgroundColor: '#f5f5f5',
+    height: 150,
+    marginBottom: 15,
+    borderRadius: 8,
   },
-  navbar: {
-    backgroundColor: '#e44d26',
-    padding: 15,
+  quantityControl: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  logo: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  quantityButton: {
+    backgroundColor: '#e44d26',
+    borderWidth: 2,
+    borderColor: '#e44d26',
+    borderRadius: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    marginHorizontal: 5,
+    marginTop: 10,
+    marginBottom: 10,
   },
-  textWhite: {
+  quantityButtonText: {
     color: 'white',
   },
-  textBlack: {
+  quantityBorder: {
+    borderWidth: 1,
+    borderColor: '#e44d26',
+    padding: 5,
+    borderRadius: 4,
+  },
+  quantityText: {
     color: 'black',
+    width: 20,
     textAlign: 'center',
     justifyContent: 'center',
   },
-  menuToggle: {
-    width: 30,
-    height: 30,
-    justifyContent: 'space-between',
-  },
-  bar: {
-    backgroundColor: 'white',
-    height: 4,
-    width: 30,
-    marginVertical: 3,
-  },
-  drawer: {
-    zIndex: 1,
-    position: 'absolute',
-    right: 0,
-    height: '100%',
-    width: 170,
-    alignItems: 'center',
+  orderButton: {
     backgroundColor: '#e44d26',
-    flexDirection: 'column',
-    paddingTop: 60,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-  },
-  drawerLink: {
-    fontWeight: 'bold',
-    fontSize: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
     marginBottom: 20,
-    margin: "auto"
-  },
-  drawerLinkMarginTop: {
-    marginTop: 10,
-  },
-  active: {
-    right: 0,
-  },
-  reservationItem: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 20,
-    marginBottom: 10,
-  },
-  itemText: {
-    fontSize: 16,
-    marginBottom: 5,
-    
-    alignSelf: 'center',
-  },
-  deleteButton: {
-    backgroundColor: '#e44d26',
-    borderRadius: 4,
-    padding: 10,
-    marginTop: 10,
-    width: 150,
-    
-    alignSelf: 'center',
-  },
-  editButton: {
-    backgroundColor: '#e44d26',
-    borderRadius: 4,
-    padding: 10,
-    marginTop: 10,
-    width: 150,
-    
-    alignSelf: 'center',
-  },
-  addButton: {
-    backgroundColor: '#e44d26',
-    borderRadius: 4,
-    padding: 15,
     marginTop: 20,
-    width: 200,
-    alignSelf: 'center',
-    marginTop: 20,
-    marginBottom: 20,
   },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  contentContainer: {
-    flex: 1,
+  logoImage:{
+    width: '100%',
+    height: 150,
   },
 });

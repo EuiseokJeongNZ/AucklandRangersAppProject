@@ -1,6 +1,6 @@
 // Signin.js
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Animated, Keyboard, ScrollView, Alert } from 'react-native';
 // onBlur={hideDrawer}
 
@@ -40,10 +40,14 @@ export default function Signin({ navigation }) {
 
   const handleLogin = async () => {
     try {
+      if(email == '' || password == ''){
+        Alert.alert('Fill in the blank!');
+        return;
+      } 
       const response = await auth().signInWithEmailAndPassword(email, password);
       
+      Alert.alert('Logged in successfully!');
       navigation.navigate('Main');
-      Alert.alert('Logged in successfully!', response);
     } catch (error) {
       Alert.alert('Login failed!');
     }
@@ -92,8 +96,8 @@ export default function Signin({ navigation }) {
                 value={password}
                 onChangeText={(text) => setPassword(text)}
                 placeholder="Enter your password" secureTextEntry={true} />
-                <TouchableOpacity style={styles.button} onPress={handleContentClick}>
-                  <Text style={styles.buttonText} onPress={()=>{ hideDrawer(); handleLogin(); }}>Log in</Text>
+                <TouchableOpacity style={styles.button} onPress={()=>{ hideDrawer(); handleContentClick(); handleLogin();}}>
+                  <Text style={styles.buttonText} >Log in</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.signupLink}>

@@ -97,14 +97,14 @@ export default function Description({ navigation }){
 
   const getImageSource = (imageURL) => {
     switch (imageURL) {
-      case '../../assets/GrilledSalmonWithLemonButter.png':
-        return require('../../assets/GrilledSalmonWithLemonButter.png');
-      case '../../assets/ChickenAlfredoPasta.png':
-        return require('../../assets/ChickenAlfredoPasta.png');
-      case '../../assets/MargheritaPizza.png':
-        return require('../../assets/MargheritaPizza.png');
-      case '../../assets/ScotchFilletWithMushroom.png':
-        return require('../../assets/ScotchFilletWithMushroom.png');
+      case '../../assets/GrilledSalmonWithLemonButter.jpg':
+        return require('../../assets/GrilledSalmonWithLemonButter.jpg');
+      case '../../assets/ChickenAlfredoPasta.jpg':
+        return require('../../assets/ChickenAlfredoPasta.jpg');
+      case '../../assets/MargheritaPizza.jpg':
+        return require('../../assets/MargheritaPizza.jpg');
+      case '../../assets/ScotchFilletWithMushroom.jpg':
+        return require('../../assets/ScotchFilletWithMushroom.jpg');
       default:
         return null;
     }
@@ -164,29 +164,30 @@ export default function Description({ navigation }){
           <Text style={[styles.drawerLink, styles.textWhite]} onPress={() => { hideDrawer(); navigation.navigate('Contact'); }}>Contact</Text>
         </Animated.View>
 
-        <ScrollView>
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
           {menus.map((menus, index) => (
             <TouchableOpacity key={index} >
               <View style={styles.foodDescriptionScreen}>
                 <Text style={styles.title}>{menus.menuName}</Text>
                 <Image source={getImageSource(menus.imageURL)} style={styles.dishImage} />
                 <Text>
-                  <Text style={styles.bold}>Price:</Text> 
-                  {' $'} 
-                  {menus.menuPrice.toFixed(2)}
+                  <Text style={styles.category}>Price:</Text >
+                  <Text style={styles.subcategory}> {' $'} 
+                  {menus.menuPrice.toFixed(2)} </Text> 
+                  
                 </Text>
                 <Text></Text>
-                <Text style={styles.bold}>Ingredients</Text>
-                <Text>{menus.ingredients}</Text>
+                <Text style={styles.category}>Ingredients</Text>
+                <Text style={styles.subcategory}>{menus.ingredients}</Text>
                 <Text></Text>
-                <Text style={styles.bold}>Recipe</Text>
-                <Text>{menus.recipe}</Text>
+                <Text style={styles.category}>Recipe</Text>
+                <Text style={styles.subcategory}>{menus.recipe}</Text>
                 <Text></Text>
-                <Text style={styles.bold}>Nutritional Value</Text>
-                <Text>{menus.nutritionalValue}</Text>
+                <Text style={styles.category}>Nutritional Value</Text>
+                <Text style={styles.subcategory}>{menus.nutritionalValue}</Text>
                 <Text></Text>
 
-                <Text style={styles.bold}>recommendation: {menus.recommendation}</Text>
+                <Text style={styles.category}>recommendation: {menus.recommendation}</Text>
                 <Text></Text>
               </View>
             </TouchableOpacity>
@@ -283,6 +284,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     marginBottom: 20,
+    color: 'black',
   },
   dishImage: {
     width: '100%',
@@ -290,7 +292,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 8,
   },
-  bold: {
+  category: {
     fontWeight: 'bold',
+    color: 'black',
+    fontSize: 16,
   },
+  subcategory:{
+    color: 'black',
+    fontSize: 16,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+  
 });
